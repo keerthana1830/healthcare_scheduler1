@@ -177,4 +177,5 @@ public class AppointmentService {
                 ", Type: " + a.getAppointmentType() +
                 ", Status: " + a.getStatus()));
     }
+
 }

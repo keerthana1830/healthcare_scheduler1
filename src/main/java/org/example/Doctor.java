@@ -44,4 +44,5 @@ public class Doctor {
     public void setAvailableHours(String availableHours) {
         this.availableHours = availableHours;
     }
+
 }

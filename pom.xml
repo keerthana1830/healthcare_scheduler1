@@ -21,8 +21,6 @@
             <version>8.0.33</version> <!-- Make sure this version matches the installed MySQL version -->
         </dependency>
 
-
-
         <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>

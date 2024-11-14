@@ -87,4 +87,5 @@ public class Main {
         int patientId = getValidIntInput(scanner);
         service.viewAppointments(doctorId == 0 ? -1 : doctorId, patientId == 0 ? -1 : patientId);
     }
+
 }
