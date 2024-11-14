@@ -1,0 +1,3 @@
+Doctor ID: 1, Patient ID: 12, Date: 2024-11-15 10:30, Type: Outpatient
+Doctor ID: 2, Patient ID: 3, Date: 2024-11-16 10:00, Type: Inward
+Doctor ID: 5, Patient ID: 8, Date: 2024-11-17 11:00, Type: Outpatient
