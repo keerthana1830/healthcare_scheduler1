@@ -5,7 +5,6 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         AppointmentService appointmentService = new AppointmentService();
-        FileHandler fileHandler = new FileHandler();
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
@@ -18,119 +17,74 @@ public class Main {
             System.out.println("6. Exit");
             System.out.print("Choose an option: ");
 
-            int choice;
-            try {
-                choice = Integer.parseInt(scanner.nextLine());
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a number between 1 and 6.");
-                continue;
-            }
+            int choice = getValidIntInput(scanner);
 
             switch (choice) {
                 case 1:
-                    // Book Appointment
-                    System.out.print("Enter Doctor ID: ");
-                    int doctorId = scanner.nextInt();
-                    scanner.nextLine(); // Clear the buffer
-
-                    if (!appointmentService.isValidDoctorId(doctorId)) {
-                        System.out.println("Doctor ID not found. Adding a new doctor.");
-                        System.out.print("Enter Doctor Name: ");
-                        String doctorName = scanner.nextLine();
-                        System.out.print("Enter Doctor Specialization: ");
-                        String specialization = scanner.nextLine();
-                        System.out.print("Enter Available Hours: ");
-                        String availableHours = scanner.nextLine();
-
-                        appointmentService.addNewDoctor(doctorId, doctorName, specialization, availableHours);
-                    }
-
-                    System.out.print("Enter Patient ID: ");
-                    int patientId = scanner.nextInt();
-                    scanner.nextLine(); // Clear the buffer
-
-                    if (!appointmentService.isValidPatientId(patientId)) {
-                        System.out.println("Patient ID not found. Adding a new patient.");
-                        System.out.print("Enter Patient Name: ");
-                        String patientName = scanner.nextLine();
-                        System.out.print("Enter Patient Email: ");
-                        String email = scanner.nextLine();
-                        System.out.print("Enter Patient Phone: ");
-                        String phone = scanner.nextLine();
-
-                        appointmentService.addNewPatient(patientId, patientName, email, phone);
-                    }
-
-                    System.out.print("Enter Appointment Date (YYYY-MM-DD HH:MM): ");
-                    String appointmentDate = scanner.nextLine();
-
-                    System.out.print("Enter Appointment Type: ");
-                    String appointmentType = scanner.nextLine();
-
-                    // Book the appointment
-                    appointmentService.bookAppointment(doctorId, patientId, appointmentDate, appointmentType);
-
-                    // Save appointment details to file
-                    fileHandler.saveAppointmentToFile(doctorId, patientId, appointmentDate, appointmentType);
+                    handleBookingAppointment(scanner, appointmentService);
                     break;
-
                 case 2:
-                    // Reschedule Appointment
-                    System.out.print("Enter Appointment ID to reschedule: ");
-                    int appointmentIdToReschedule = scanner.nextInt();
-                    scanner.nextLine(); // Clear the buffer
-
-                    System.out.print("Enter New Appointment Date (YYYY-MM-DD HH:MM): ");
-                    String newAppointmentDate = scanner.nextLine();
-
-                    // Reschedule the appointment
-                    appointmentService.rescheduleAppointment(appointmentIdToReschedule, newAppointmentDate);
+                    handleRescheduling(scanner, appointmentService);
                     break;
-
                 case 3:
-                    // Cancel Appointment
-                    System.out.print("Enter Appointment ID to cancel: ");
-                    int appointmentIdToCancel = scanner.nextInt();
-                    scanner.nextLine(); // Clear the buffer
-
-                    // Cancel the appointment
-                    appointmentService.cancelAppointment(appointmentIdToCancel);
+                    handleCancellation(scanner, appointmentService);
                     break;
-
                 case 4:
-                    // View Appointments
-                    System.out.println("View appointments for (1) Doctor or (2) Patient?");
-                    int viewChoice = scanner.nextInt();
-                    scanner.nextLine(); // Clear the buffer
-
-                    if (viewChoice == 1) {
-                        System.out.print("Enter Doctor ID: ");
-                        int doctorIdForView = scanner.nextInt();
-                        scanner.nextLine(); // Clear the buffer
-                        appointmentService.viewAppointments(doctorIdForView, 0);  // 0 to view all for the doctor
-                    } else if (viewChoice == 2) {
-                        System.out.print("Enter Patient ID: ");
-                        int patientIdForView = scanner.nextInt();
-                        scanner.nextLine(); // Clear the buffer
-                        appointmentService.viewAppointments(0, patientIdForView);  // 0 to view all for the patient
-                    } else {
-                        System.out.println("Invalid choice.");
-                    }
+                    handleViewingAppointments(scanner, appointmentService);
                     break;
-
                 case 5:
-                    // View All Appointments
                     appointmentService.viewAllAppointments();
                     break;
-
                 case 6:
-                    // Exit
                     System.out.println("Exiting...");
                     return;
-
                 default:
                     System.out.println("Invalid option. Try again.");
             }
         }
+    }
+
+    private static int getValidIntInput(Scanner scanner) {
+        while (true) {
+            try {
+                return Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.print("Invalid input. Please enter a number: ");
+            }
+        }
+    }
+
+    private static void handleBookingAppointment(Scanner scanner, AppointmentService service) {
+        System.out.print("Enter Doctor ID: ");
+        int doctorId = getValidIntInput(scanner);
+        System.out.print("Enter Patient ID: ");
+        int patientId = getValidIntInput(scanner);
+        System.out.print("Enter Appointment Date (YYYY-MM-DD HH:MM): ");
+        String appointmentDate = scanner.nextLine();
+        System.out.print("Enter Appointment Type: ");
+        String appointmentType = scanner.nextLine();
+        service.bookAppointment(doctorId, patientId, appointmentDate, appointmentType);
+    }
+
+    private static void handleRescheduling(Scanner scanner, AppointmentService service) {
+        System.out.print("Enter Appointment ID to reschedule: ");
+        int appointmentId = getValidIntInput(scanner);
+        System.out.print("Enter New Appointment Date (YYYY-MM-DD HH:MM): ");
+        String newDate = scanner.nextLine();
+        service.rescheduleAppointment(appointmentId, newDate);
+    }
+
+    private static void handleCancellation(Scanner scanner, AppointmentService service) {
+        System.out.print("Enter Appointment ID to cancel: ");
+        int appointmentId = getValidIntInput(scanner);
+        service.cancelAppointment(appointmentId);
+    }
+
+    private static void handleViewingAppointments(Scanner scanner, AppointmentService service) {
+        System.out.print("Enter Doctor ID to view appointments (or 0 to skip): ");
+        int doctorId = getValidIntInput(scanner);
+        System.out.print("Enter Patient ID to view appointments (or 0 to skip): ");
+        int patientId = getValidIntInput(scanner);
+        service.viewAppointments(doctorId == 0 ? -1 : doctorId, patientId == 0 ? -1 : patientId);
     }
 }

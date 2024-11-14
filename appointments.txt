@@ -5,3 +5,5 @@ Doctor ID: 1, Patient ID: 12, Date: 2024-11-19 09:00, Type: Surgery consultancy
 Doctor ID: 1, Patient ID: 1, Date: 2024-11-18 10:00, Type: Dermatologist
 Doctor ID: 100, Patient ID: 120, Date: 2024-12-01 10:00, Type: Consultancy
 Doctor ID: 100, Patient ID: 222, Date: 2024-11-19 09:15, Type: Consultancy
+Doctor ID: 100, Patient ID: 200, Date: 2024-11-20 11:20, Type: Consulting
+Doctor ID: 10, Patient ID: 2005, Date: 2024-11-15 10:00, Type: consulting

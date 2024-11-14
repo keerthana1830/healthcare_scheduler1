@@ -1,49 +1,84 @@
-
 package org.example;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class AppointmentService {
     private Connection connection;
+    private List<Doctor> doctors = new ArrayList<>();
+    private List<Patient> patients = new ArrayList<>();
+    private List<Appointment> appointments = new ArrayList<>();
 
     public AppointmentService() {
         try {
-            // Establish a connection to the database
             connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/healthcaresystem", "root", "root");
+            loadDoctors();
+            loadPatients();
+            loadAppointments();
         } catch (SQLException e) {
             System.out.println("Database connection error: " + e.getMessage());
         }
     }
 
-    // Check if Doctor ID is valid
+    private void loadDoctors() {
+        String query = "SELECT * FROM doctors";
+        try (Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(query)) {
+            while (rs.next()) {
+                int doctorId = rs.getInt("doctor_id");
+                String name = rs.getString("name");
+                String specialization = rs.getString("specialization");
+                String availableHours = rs.getString("available_hours");
+                doctors.add(new Doctor(name, doctorId, specialization, availableHours));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error loading doctors: " + e.getMessage());
+        }
+    }
+
+    private void loadPatients() {
+        String query = "SELECT * FROM patients";
+        try (Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(query)) {
+            while (rs.next()) {
+                int patientId = rs.getInt("patient_id");
+                String name = rs.getString("name");
+                String email = rs.getString("email");
+                String phone = rs.getString("phone");
+                patients.add(new Patient(patientId, name, email, phone));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error loading patients: " + e.getMessage());
+        }
+    }
+
+    private void loadAppointments() {
+        String query = "SELECT * FROM appointments";
+        try (Statement statement = connection.createStatement(); ResultSet rs = statement.executeQuery(query)) {
+            while (rs.next()) {
+                int appointmentId = rs.getInt("appointment_id");
+                int doctorId = rs.getInt("doctor_id");
+                int patientId = rs.getInt("patient_id");
+                String appointmentType = rs.getString("appointment_type");
+                String status = rs.getString("status");
+                appointments.add(new Appointment(appointmentId, doctorId, patientId, appointmentType, status));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error loading appointments: " + e.getMessage());
+        }
+    }
+
     public boolean isValidDoctorId(int doctorId) {
-        String query = "SELECT * FROM doctors WHERE doctor_id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setInt(1, doctorId);
-            ResultSet rs = statement.executeQuery();
-            return rs.next();
-        } catch (SQLException e) {
-            System.out.println("Error checking Doctor ID: " + e.getMessage());
-            return false;
-        }
+        return doctors.stream().anyMatch(d -> d.getDoctorId() == doctorId);
     }
 
-    // Check if Patient ID is valid
     public boolean isValidPatientId(int patientId) {
-        String query = "SELECT * FROM patients WHERE patient_id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setInt(1, patientId);
-            ResultSet rs = statement.executeQuery();
-            return rs.next();
-        } catch (SQLException e) {
-            System.out.println("Error checking Patient ID: " + e.getMessage());
-            return false;
-        }
+        return patients.stream().anyMatch(p -> p.getPatientId() == patientId);
     }
 
-    // Add new doctor to the database
     public void addNewDoctor(int doctorId, String name, String specialization, String availableHours) {
+        Doctor newDoctor = new Doctor(name, doctorId, specialization, availableHours);
+        doctors.add(newDoctor);
         String insertQuery = "INSERT INTO doctors (doctor_id, name, specialization, available_hours) VALUES (?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(insertQuery)) {
             statement.setInt(1, doctorId);
@@ -57,8 +92,9 @@ public class AppointmentService {
         }
     }
 
-    // Add new patient to the database
     public void addNewPatient(int patientId, String name, String email, String phone) {
+        Patient newPatient = new Patient(patientId, name, email, phone);
+        patients.add(newPatient);
         String insertQuery = "INSERT INTO patients (patient_id, name, email, phone) VALUES (?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(insertQuery)) {
             statement.setInt(1, patientId);
@@ -72,8 +108,9 @@ public class AppointmentService {
         }
     }
 
-    // Method to book an appointment
     public void bookAppointment(int doctorId, int patientId, String appointmentDate, String appointmentType) {
+        Appointment newAppointment = new Appointment(appointments.size() + 1, doctorId, patientId, appointmentType, "Scheduled");
+        appointments.add(newAppointment);
         String insertQuery = "INSERT INTO appointments (doctor_id, patient_id, appointment_date, appointment_type, status) VALUES (?, ?, ?, ?, 'Scheduled')";
         try (PreparedStatement statement = connection.prepareStatement(insertQuery)) {
             statement.setInt(1, doctorId);
@@ -87,8 +124,11 @@ public class AppointmentService {
         }
     }
 
-    // Method to reschedule an appointment
     public void rescheduleAppointment(int appointmentId, String newDate) {
+        appointments.stream()
+                .filter(a -> a.getAppointmentId() == appointmentId)
+                .findFirst()
+                .ifPresent(a -> a.setStatus("Rescheduled"));
         String updateQuery = "UPDATE appointments SET appointment_date = ?, status = 'Rescheduled' WHERE appointment_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(updateQuery)) {
             statement.setString(1, newDate);
@@ -104,8 +144,8 @@ public class AppointmentService {
         }
     }
 
-    // Method to cancel an appointment
     public void cancelAppointment(int appointmentId) {
+        appointments.removeIf(a -> a.getAppointmentId() == appointmentId);
         String deleteQuery = "DELETE FROM appointments WHERE appointment_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(deleteQuery)) {
             statement.setInt(1, appointmentId);
@@ -120,49 +160,21 @@ public class AppointmentService {
         }
     }
 
-    // Method to view appointment schedules for a specific doctor or patient
     public void viewAppointments(int doctorId, int patientId) {
-        String query = "SELECT appointment_id, doctor_id, patient_id, appointment_date, appointment_type, status FROM appointments WHERE doctor_id = ? OR patient_id = ? ORDER BY appointment_date";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setInt(1, doctorId);
-            statement.setInt(2, patientId);
-            ResultSet rs = statement.executeQuery();
-            System.out.println("Appointment Schedules:");
-            while (rs.next()) {
-                System.out.println("Appointment ID: " + rs.getInt("appointment_id"));
-                System.out.println("Doctor ID: " + rs.getInt("doctor_id"));
-                System.out.println("Patient ID: " + rs.getInt("patient_id"));
-                System.out.println("Date: " + rs.getString("appointment_date"));
-                System.out.println("Type: " + rs.getString("appointment_type"));
-                System.out.println("Status: " + rs.getString("status"));
-                System.out.println("------------------------");
-            }
-        } catch (SQLException e) {
-            System.out.println("Error viewing appointments: " + e.getMessage());
-        }
+        appointments.stream()
+                .filter(a -> a.getDoctorId() == doctorId || a.getPatientId() == patientId)
+                .forEach(a -> System.out.println("Appointment ID: " + a.getAppointmentId() +
+                        ", Doctor ID: " + a.getDoctorId() +
+                        ", Patient ID: " + a.getPatientId() +
+                        ", Type: " + a.getAppointmentType() +
+                        ", Status: " + a.getStatus()));
     }
 
     public void viewAllAppointments() {
-        String query = "SELECT * FROM appointments";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            ResultSet rs = statement.executeQuery();
-
-            System.out.println("\nAll Appointments:");
-            System.out.println("Appointment ID | Doctor ID | Patient ID | Appointment Date | Appointment Type | Status");
-
-            while (rs.next()) {
-                int appointmentId = rs.getInt("appointment_id");
-                int doctorId = rs.getInt("doctor_id");
-                int patientId = rs.getInt("patient_id");
-                String appointmentDate = rs.getString("appointment_date");
-                String appointmentType = rs.getString("appointment_type");
-                String status = rs.getString("status");
-
-                System.out.println(appointmentId + " | " + doctorId + " | " + patientId + " | " + appointmentDate + " | " + appointmentType + " | " + status);
-            }
-        } catch (SQLException e) {
-            System.out.println("Error fetching appointments: " + e.getMessage());
-        }
+        appointments.forEach(a -> System.out.println("Appointment ID: " + a.getAppointmentId() +
+                ", Doctor ID: " + a.getDoctorId() +
+                ", Patient ID: " + a.getPatientId() +
+                ", Type: " + a.getAppointmentType() +
+                ", Status: " + a.getStatus()));
     }
-
 }

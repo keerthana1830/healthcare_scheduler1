@@ -20,6 +20,15 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.33</version> <!-- Make sure this version matches the installed MySQL version -->
         </dependency>
+
+
+
+        <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>5.8.0</version>
+        <scope>test</scope>
+    </dependency>
     </dependencies>
 
 
