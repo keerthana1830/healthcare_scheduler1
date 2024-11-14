@@ -1,3 +1,7 @@
 Doctor ID: 1, Patient ID: 12, Date: 2024-11-15 10:30, Type: Outpatient
 Doctor ID: 2, Patient ID: 3, Date: 2024-11-16 10:00, Type: Inward
 Doctor ID: 5, Patient ID: 8, Date: 2024-11-17 11:00, Type: Outpatient
+Doctor ID: 1, Patient ID: 12, Date: 2024-11-19 09:00, Type: Surgery consultancy
+Doctor ID: 1, Patient ID: 1, Date: 2024-11-18 10:00, Type: Dermatologist
+Doctor ID: 100, Patient ID: 120, Date: 2024-12-01 10:00, Type: Consultancy
+Doctor ID: 100, Patient ID: 222, Date: 2024-11-19 09:15, Type: Consultancy
